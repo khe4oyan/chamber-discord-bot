@@ -6,8 +6,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
+  EmbedBuilder,
 } from "discord.js";
-
 // services
 import UserService from "../services/User.service.js";
 import LoggerService from "../services/Logger.service.js";
@@ -58,25 +58,6 @@ const generate = {
     await interaction.deferReply();
 
     const LOGGER = new LoggerService(interaction.client);
-
-    const template = [`**Daily Check-in ✅ <@${interaction.user.id}>**\n`];
-
-    // add did check's
-    if (yesterday) {
-      const yesterdayArr = yesterday.split("\n");
-      template.push("__What I did yesterday: :ballot_box_with_check:__");
-      template.push(yesterday);
-      template.push("");
-    }
-
-    // add want check's
-    if (today) {
-      const todayArr = today.split("\n");
-      template.push("__What I want to get done today: :sparkles:__");
-      template.push(today);
-      template.push("");
-    }
-
     const username = interaction.user.username;
     let userData = await UserService.find(username);
 
@@ -131,15 +112,39 @@ const generate = {
 
     const { longest_streaks, current_streaks } = userData;
 
-    template.push("-----");
-    template.push(
-      `:fire: **${current_streaks}-day${current_streaks > 1 ? "s" : ""} streak**`,
-    );
-    template.push(
-      `:trophy: **${longest_streaks} day${longest_streaks > 1 ? "s" : ""} longest streak**`,
-    );
+    const checkinEmbed = new EmbedBuilder()
+      .setTitle(`**Daily Check In** ✅`)
+      .setDescription(`<@${interaction.user.id}>`)
+      .setAuthor({
+        name: interaction.user.globalName,
+        iconURL: interaction.user.displayAvatarURL({
+          dynamic: true,
+          size: 256,
+        }),
+      });
 
-    await interaction.editReply(template.join("\n"));
+    if (yesterday) {
+      // note; the font for Text used here is mathematical sans-serif bold.
+      checkinEmbed.addFields({
+        name: "__What I Did Yesterday__ :ballot_box_with_check:",
+        value: yesterday,
+      });
+    }
+    if (today) {
+      checkinEmbed.addFields({
+        name: "__What I Want To Get Done Today__ 🎯",
+        value: today,
+      });
+    }
+    const statsEmbed = new EmbedBuilder()
+      .addFields({
+        name: `🔥 Streaks!`,
+        value: `🔥 ${current_streaks}-day${current_streaks > 1 ? "s" : ""} streak \n🏆 ${longest_streaks} day${longest_streaks > 1 ? "s" : ""} longest streak`,
+      })
+      .setColor("#ffd700");
+    await interaction.editReply({
+      embeds: [checkinEmbed, statsEmbed],
+    });
   },
 };
 
