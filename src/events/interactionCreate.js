@@ -4,8 +4,8 @@ import { Collection, Events, MessageFlags } from "discord.js";
 // services
 import LoggerService from "../services/Logger.service.js";
 
-// commands
-import checkinCommand from "../commands/checkin.js";
+// modal submits
+import { checkinModal, checkinModalKey } from "../modalSubmits/checkinModal.js";
 
 const interactionCreate = {
   name: Events.InteractionCreate,
@@ -75,8 +75,8 @@ const interactionCreate = {
     } else if (interaction.isModalSubmit()) {
       try {
         switch (interaction.customId) {
-          case "checkin_modal": {
-            await checkinCommand.modalSubmit(interaction);
+          case checkinModalKey: {
+            await checkinModal(interaction);
             break;
           }
 
@@ -88,11 +88,11 @@ const interactionCreate = {
           }
         }
       } catch (error) {
+        await LOGGER.error(`[ERROR]: modal submit error \n${error}`);
         await interaction.reply({
           content: "Something went wrong",
           flags: MessageFlags.Ephemeral,
         });
-        await LOGGER.error(`[ERROR]: modal submit error \n${error}`);
       }
     }
   },
