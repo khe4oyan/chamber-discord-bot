@@ -9,7 +9,7 @@ const adapter = new PrismaMariaDb({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   connectionLimit: 10,
-  connectTimeout: 3000,
+  connectTimeout: 10000,
 });
 
 const prisma = new PrismaClient({ adapter });
